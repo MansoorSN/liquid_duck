@@ -34,8 +34,6 @@ def generate_products(num=50):
     
 
 # %%
-fake = Faker()
-Faker.seed(2025)
 
 def generate_customers(num=50):
     customer_list=[]
