@@ -2,7 +2,7 @@
 import pandas as pd
 import duckdb as db
 
-con=db.connect()
+con=db.connect(database='liquid_duck.db', read_only=False)
 
 # %%
 #Create Products, Customers, Sales tables in duck db from the CSV files. 
