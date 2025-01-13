@@ -1,78 +1,87 @@
-# --
 import redis
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import json
-from faker import Faker
 
-# %%
-r = redis.Redis(host='localhost', port=6380, db=0)
+# Initialize Redis connection
+redis_client = redis.Redis(host='localhost', port=6380, db=0)
 
 
-# %%
-
-class MyWebSocket(tornado.websocket.WebSocketHandler):
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
+    """
+    A WebSocket handler to process and route incoming messages to Redis streams
+    based on their type.
+    """
 
     def open(self):
+        """Called when a WebSocket connection is opened."""
         print("WebSocket connection opened")
 
     def on_message(self, message):
         """
         Called when a client sends a message to this endpoint.
-        We expect `message` to be a JSON string.
+
+        Args:
+            message (str): JSON string containing the message data.
         """
         try:
             data = json.loads(message)
 
-           # check for the appropriate message type and process it
+            # Determine message type and process accordingly
             message_type = data.get("type")
             if message_type == "products":
                 self.process_product_data(data)
             elif message_type == "customers":
-                self.process_order_data(data)
+                self.process_customer_data(data)
             elif message_type == "sales":
-                self.process_inventory_data(data)
+                self.process_sales_data(data)
             else:
                 self.write_message("Unknown data type")
                 return
 
             self.write_message(f"Processed {message_type} data successfully.")
-        except Exception as e:
-            print(f"Error processing message: {e}")
-            self.write_message(f"Error: {str(e)}")
+        except Exception as error:
+            print(f"Error processing message: {error}")
+            self.write_message(f"Error: {str(error)}")
 
     def process_product_data(self, data):
-        print(f"Processing products data: {data}")
-        r.xadd("products_stream", {k: str(v) for k, v in data.items()})
+        """Process and add product data to the Redis stream."""
+        print(f"Processing product data: {data}")
+        redis_client.xadd("products_stream", {
+                          k: str(v) for k, v in data.items()})
 
-    def process_order_data(self, data):
+    def process_customer_data(self, data):
+        """Process and add customer data to the Redis stream."""
+        print(f"Processing customer data: {data}")
+        redis_client.xadd("customers_stream", {
+                          k: str(v) for k, v in data.items()})
 
-        print(f"Processing Customers data: {data}")
-        r.xadd("customers_stream", {k: str(v) for k, v in data.items()})
-
-    def process_inventory_data(self, data):
-
+    def process_sales_data(self, data):
+        """Process and add sales data to the Redis stream."""
         print(f"Processing sales data: {data}")
-        r.xadd("sales_stream", {k: str(v) for k, v in data.items()})
+        redis_client.xadd("sales_stream", {k: str(v) for k, v in data.items()})
 
     def on_close(self):
+        """Called when the WebSocket connection is closed."""
         print("WebSocket connection closed")
-
-# %%
 
 
 def make_app():
+    """
+    Create and return a Tornado web application.
+
+    Returns:
+        tornado.web.Application: Tornado application instance.
+    """
     return tornado.web.Application([
-        (r"/ws", MyWebSocket),  # WebSocket route
+        (r"/ws", WebSocketHandler),
     ])
 
 
-# %%
 if __name__ == "__main__":
     app = make_app()
-    app.listen(8888)  # start Tornado on localhost:8888
+    app.listen(8888)  # Start Tornado on localhost:8888
     print("Tornado WebSocket server running on http://localhost:8888/ws")
-    print("redis is running on localhost:6380", r.ping())
+    print("Redis is running on localhost:6380", redis_client.ping())
     tornado.ioloop.IOLoop.current().start()
-# %%
