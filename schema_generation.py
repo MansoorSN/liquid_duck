@@ -1,96 +1,106 @@
 # %%
-import duckdb as db
-# %%
-
-con = db.connect(database='liquid_duck.db', read_only=False)
-# %%
-con.execute('''
-            CREATE OR replace TABLE products
-                        (
-                            "Product_id"       integer ,
-                            "Supplier"         varchar(255) ,
-                            "Brand"            varchar(255) ,
-                            "Family"           varchar(255) ,
-                            "Product_name"     varchar(255) ,
-                            "Product_cost"     decimal(10,2) ,
-                            "Inventory_volume" integer
-                        ) ;
-            ''')
+import duckdb
 
 # %%
-con.execute('''
-            CREATE OR REPLACE TABLE CUSTOMERS
-            ( 
-                "Customer_id" INTEGER                  
-            , "Customer_name"  VARCHAR(255)       
-            , "Customer_address" VARCHAR(255)     
-            , "Customer_phone" VARCHAR(255)       
-            
-            );
-            ''')
+# Connect to the DuckDB database
+connection = duckdb.connect(database='liquid_duck.db', read_only=False)
 
 # %%
-con.execute('''
-            CREATE OR REPLACE TABLE SALES 
-            (
-            
-            "sale_id"   INTEGER              
-            , "Product_id"  INTEGER           
-            , "Customer_id"  INTEGER          
-            , "Sale_date"   DATE              
-            , "Sale_volume"  INTEGER          
-            , "Sale_revenue" DECIMAL(10,2)   
-            );
+# Create products table
+connection.execute('''
+    CREATE OR REPLACE TABLE products (
+        product_id INTEGER,
+        supplier VARCHAR(255),
+        brand VARCHAR(255),
+        family VARCHAR(255),
+        product_name VARCHAR(255),
+        product_cost DECIMAL(10,2),
+        inventory_volume INTEGER
+    );
 ''')
-# %%
-# create a view of denormalized sales
-
-con.execute('''
-            CREATE OR REPLACE VIEW DENORMALIZED_SALES_VIEW AS
-            SELECT * FROM
-           SALES S LEFT OUTER JOIN CUSTOMERS C
-            ON S.Customer_id=C.Customer_id 
-            LEFT OUTER JOIN PRODUCTS P 
-            ON S.Product_id=P.Product_id   
-            ''')
-
 
 # %%
-# create a view of Grouping_SETS for SALES REVENUE AND SALES VOLUME
-con.execute('''
-                CREATE OR REPLACE VIEW GS_SALES_VIEW AS
-                    SELECT 
-                    Supplier
-                    , Brand
-                                , Family
-                                , (EXTRACT(YEAR FROM Sale_date))::INTEGER    AS Year 
-                                , sum(Sale_volume)  AS Total_sales
-                                , sum(Sale_revenue) AS Total_revenue
-                            FROM DENORMALIZED_SALES_VIEW
-                            GROUP BY GROUPING SETS
-                                ( ()
-                                ,  (Supplier, Year)
-                                , (Supplier, Brand, Year)
-                                , (Supplier, Brand, Family, Year)
-                                , (Year)
-                                ) 
-                                Order BY Supplier NULLS FIRST, Brand NULLS FIRST, Family NULLS FIRST, Year NULLS FIRST;
-                                ''')
+# Create customers table
+connection.execute('''
+    CREATE OR REPLACE TABLE customers (
+        customer_id INTEGER,
+        customer_name VARCHAR(255),
+        customer_address VARCHAR(255),
+        customer_phone VARCHAR(255)
+    );
+''')
+
 # %%
-con.close()
+# Create sales table
+connection.execute('''
+    CREATE OR REPLACE TABLE sales (
+        sale_id INTEGER,
+        product_id INTEGER,
+        customer_id INTEGER,
+        sale_date DATE,
+        sale_volume INTEGER,
+        sale_revenue DECIMAL(10,2)
+    );
+''')
 
-
-# ---------------------------------------------------------------------------------------
 # %%
+# Create a view for denormalized sales
+connection.execute('''
+    CREATE OR REPLACE VIEW denormalized_sales_view AS
+    SELECT *
+    FROM sales s
+    LEFT OUTER JOIN customers c ON s.customer_id = c.customer_id
+    LEFT OUTER JOIN products p ON s.product_id = p.product_id;
+''')
 
-con.execute('''
-            INSERT INTO CUSTOMERS 
-            SELECT 
-                *
-            FROM read_csv_auto('datasets/customers.csv', header=True);
-            ''')
 # %%
+# Create a view for grouping sets of sales revenue and volume
+connection.execute('''
+    CREATE OR REPLACE VIEW gs_sales_view AS
+    SELECT 
+        supplier,
+        brand,
+        family,
+        EXTRACT(YEAR FROM sale_date)::INTEGER AS year,
+        SUM(sale_volume) AS total_sales,
+        SUM(sale_revenue) AS total_revenue
+    FROM denormalized_sales_view
+    GROUP BY GROUPING SETS (
+        (),
+        (supplier, year),
+        (supplier, brand, year),
+        (supplier, brand, family, year),
+        (year)
+    )
+    ORDER BY 
+        supplier NULLS FIRST,
+        brand NULLS FIRST,
+        family NULLS FIRST,
+        year NULLS FIRST;
+''')
 
-df = con.execute('SELECT * FROM CUSTOMERS').df()
+# %%
+# Close the DuckDB connection
+connection.close()
+
+# %%
+# Reopen connection for data insertion
+connection = duckdb.connect(database='liquid_duck.db', read_only=False)
+
+# %%
+# Insert data into customers table from CSV
+connection.execute('''
+    INSERT INTO customers
+    SELECT *
+    FROM read_csv_auto('datasets/customers.csv', header=True);
+''')
+
+# %%
+# Verify inserted data
+df = connection.execute('SELECT * FROM customers').df()
 print(df.head(10))
+
+# %%
+# Close the DuckDB connection
+connection.close()
 # %%
