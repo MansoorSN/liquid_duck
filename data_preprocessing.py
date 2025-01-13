@@ -45,16 +45,7 @@ con.execute('''
             , "Sale_revenue"::DECIMAL(10,2)   AS Sale_revenue
             FROM read_csv_auto('datasets/sales.csv', header=True);
 ''')
-# %%
 
-df=con.execute('''
-            SELECT * FROM
-           DENORMALIZED_SALES   
-            
-            ''').df()
-
-print(df.columns)
-print(df.head(30))
 
 # %%
 con.execute('''
@@ -68,4 +59,14 @@ con.execute('''
 
 # %%
 con.execute("COPY (FROM DENORMALIZED_SALES) TO 'datasets/denormalized_sales.csv' (HEADER, DELIMITER ',')")
+
 # %%
+
+df=con.execute('''
+            SELECT * 
+            FROM DENORMALIZED_SALES   
+            
+            ''').df()
+
+print(df.columns)
+print(df.head(30))
