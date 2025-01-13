@@ -83,24 +83,5 @@ connection.execute('''
 # Close the DuckDB connection
 connection.close()
 
-# %%
-# Reopen connection for data insertion
-connection = duckdb.connect(database='liquid_duck.db', read_only=False)
 
-# %%
-# Insert data into customers table from CSV
-connection.execute('''
-    INSERT INTO customers
-    SELECT *
-    FROM read_csv_auto('datasets/customers.csv', header=True);
-''')
-
-# %%
-# Verify inserted data
-df = connection.execute('SELECT * FROM customers').df()
-print(df.head(10))
-
-# %%
-# Close the DuckDB connection
-connection.close()
 # %%
