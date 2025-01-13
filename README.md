@@ -36,3 +36,5 @@ Customer:
 
 ![image](https://github.com/user-attachments/assets/5d9c6585-37df-4550-9b1e-8e2fc1783db6)
 
+Workflow:
+![Alt text](workflow.jpg)
