@@ -1,4 +1,3 @@
-
 import asyncio
 import websockets
 import json
@@ -6,9 +5,15 @@ import pandas as pd
 
 
 async def websocket_client():
+    """
+    Connects to a WebSocket server and sends data from CSV files.
+
+    The function reads data from products, customers, and sales CSV files,
+    then sends the data to the WebSocket server in JSON format.
+    """
     uri = "ws://localhost:8888/ws"  # WebSocket server URL
 
-   # Read CSV files into pandas DataFrames
+    # Read CSV files into pandas DataFrames
     products_df = pd.read_csv(r"datasets/products.csv",
                               header=0, index_col=None)
     customers_df = pd.read_csv(
@@ -48,8 +53,8 @@ async def websocket_client():
                 await asyncio.sleep(1)
 
             print("All messages sent. Closing connection.")
-    except Exception as e:
-        print(f"Error connecting to WebSocket server: {e}")
+    except Exception as error:
+        print(f"Error connecting to WebSocket server: {error}")
 
 
 # Run the client
