@@ -48,10 +48,6 @@ def consume_from_redis():
             # print(stream_queries)
 
             for stream, entries in messages:
-
-                # print("stream=======================================",stream)
-                # print("entry=======================================",entries)
-
                 for message_id, data in entries:
                     # Parse the message
                     record = {k.decode('utf-8'): v.decode('utf-8')
