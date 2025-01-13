@@ -39,7 +39,7 @@ Customer:
 Workflow:
 ![Alt text](workflow.jpg)
 
-Schema Generation:
+*Schema Generation*:
 Sales, Products, Customers table are created and a denormalized and Grouping Sets views are created.
 We have used views instead of tables, to get the latest data every time we run a query.
 
