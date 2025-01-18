@@ -1,3 +1,13 @@
+# Problem Statement : Process real time sales data to obtain latest results of sales data across Suppliers, Brands and Family of products
+
+We have a realtime data of Products, Customers and Sales coming from multiple sources. We need to ingest this data, Transform the data to obtain the insights and load it to a Target table.
+To extract the data from the data sources in real time we create a websocket server that esatblishes a websocket connection and writes the data to a Redis server. The redis server acts as message queue decoupling the source from the consumer that consumes the source data. The consumer consumes from the redis queue and writes the data to duckdb tables.
+The data obtained is transformed by first creating a denormalized view and then applying Grouping Sets and pivot operations to transform the data to obtain the desired performance indicators.
+
+Performance Indicators : Sales Volume and Sales Revenue of Suppliers, Brands and Families of Products by Year
+
+
+
 # liquid_duck
 Liquid Duck Project
 
