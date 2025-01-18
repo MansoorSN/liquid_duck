@@ -25,17 +25,20 @@ Redis is an in memory database in our case used as a message queue. Since its in
 
 
 *Installation Steps:*
+	
 	Install ubuntu in WSL:
-wsl --install -d Ubuntu
+	'''wsl --install -d Ubuntu'''
+ 
  	Check installation status after its done:
-     -	wsl --list --verbose
+     	'''wsl --list --verbose'''
 	Login to ubuntu:
-	Install redis:
-	-sudo apt-get update
- sudo apt-get install redis-server
 
-Run Redis-server:
-redis-server --port 6380
+	Install redis:
+	'''sudo apt-get update'''
+ 	'''sudo apt-get install redis-server'''
+
+	Run Redis-server:
+	'''redis-server --port 6380'''
 
 
 
