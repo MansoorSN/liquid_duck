@@ -82,6 +82,4 @@ connection.execute('''
 # %%
 # Close the DuckDB connection
 connection.close()
-
-
-# %%
+``
