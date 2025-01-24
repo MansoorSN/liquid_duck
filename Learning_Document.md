@@ -32,7 +32,7 @@ Redis is an in memory database in our case used as a message queue. Since its in
  	Check installation status after its done:
      	'''wsl --list --verbose'''
 	Login to ubuntu:
-
+	'''wsl -d ubuntu'''
 	Install redis:
 	'''sudo apt-get update'''
  	'''sudo apt-get install redis-server'''
